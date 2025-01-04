@@ -1,0 +1,152 @@
+// Supplier Schema
+//it define the structure that is including the supplier structure
+
+
+// models/Supplier.js
+const mongoose = require("mongoose");
+
+// Define the Supplier Schema
+const supplierSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+  },
+  phone: {
+    type: String,
+    required: true,
+  },
+  address: {
+    type: String,
+    required: true,
+  },
+  products: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+    },
+  ], // Relation to Products
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+Product Schema
+
+//products that are linked to suppliers
+
+// models/Product.js
+const mongoose = require("mongoose");
+
+// Define the Product Schema
+const productSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  category: {
+    type: String,
+    required: true,
+  },
+  price: {
+    type: Number,
+    required: true,
+  },
+  stockQuantity: {
+    type: Number,
+    default: 0,
+  },
+  supplier: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Supplier",
+  }, // Relation to Supplier
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+//crud operations included
+
+
+//
+Create a New Supplier
+
+// routes/supplier.js
+const express = require("express");
+const Supplier = require("../models/Supplier");
+const router = express.Router();
+
+//adding a new supplier
+router.post("/add", async (req, res) => {
+  try {
+    const { name, email, phone, address } = req.body;
+
+    const newSupplier = new Supplier({
+      name,
+      email,
+      phone,
+      address,
+    });
+
+    const savedSupplier = await newSupplier.save();
+    res.status(201).json(savedSupplier);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;
+
+//Get All Suppliers
+
+
+router.get("/", async (req, res) => {
+  try {
+    const suppliers = await Supplier.find().populate("products");
+    res.json(suppliers);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// Update supplier details
+router.put("/:id", async (req, res) => {
+  try {
+    const updatedSupplier = await Supplier.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    res.json(updatedSupplier);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+// Delete a supplier
+router.delete("/:id", async (req, res) => {
+  try {
+    await Supplier.findByIdAndDelete(req.params.id);
+    res.json({ message: "Supplier deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+
+
+
+
